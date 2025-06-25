@@ -1,0 +1,35 @@
+#!/bin/bash
+set -eu
+touch $LOGDIR/skip.mountdisks
+
+# Set filesystem context if running with SELinux enabled
+options="context=$(cat /proc/self/attr/current 2>/dev/null || :)"
+
+set -- $disklist
+device=/dev/$1
+device_root="${device}p16"
+device_efi="${device}p15"
+# Add device variables for custom partitions
+device_swap="${device}p17"
+device_home="${device}p18"
+device_variable="${device}p19"
+device_temp="${device}p20"
+
+mount -o noatime -o "$options" "$device_root" "$FAI_ROOT"
+if ifclass -o AMD64 ARM64 RISCV64; then
+  mkdir -p "${FAI_ROOT}/boot/efi"
+  mount -o noatime -o "$options" "$device_efi" "${FAI_ROOT}/boot/efi"
+fi
+
+# Mount custom partitions
+mkdir -p "${FAI_ROOT}/home"
+mount -o noatime -o "$options" "$device_home" "${FAI_ROOT}/home"
+
+mkdir -p "${FAI_ROOT}/var"
+mount -o noatime -o "$options" "$device_variable" "${FAI_ROOT}/var"
+
+mkdir -p "${FAI_ROOT}/tmp"
+mount -o noatime -o "$options" "$device_temp" "${FAI_ROOT}/tmp"
+
+# Note: Swap partition doesn't need to be mounted during build
+# It will be configured in fstab for runtime use

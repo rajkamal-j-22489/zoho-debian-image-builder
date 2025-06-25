@@ -1,0 +1,57 @@
+# After modifications, please call:
+# "python3 -m debian_cloud_images.cli.generate_ci .gitlab/ci/generated.yml"
+---
+apiVersion: cloud.debian.org/v1alpha1
+kind: ImageConfig
+
+archs:
+- name: amd64
+  azureName: X64
+  ociArch: amd64
+  faiClasses: [AMD64]
+- name: arm64
+  azureName: Arm64
+  ociArch: arm64
+  faiClasses: [ARM64]
+
+releases:
+- name: bullseye
+  basename: bullseye
+  id: '11'
+  baseid: '11'
+  faiClasses: [BULLSEYE, LINUX_VERSION_BASE, EXTRAS]
+  matches:
+  - matchArches: [amd64, arm64]
+- name: bookworm
+  basename: bookworm
+  id: '12'
+  baseid: '12'
+  faiClasses: [BOOKWORM, LINUX_VERSION_BASE, EXTRAS]
+  matches:
+  - matchArches: [amd64, arm64]
+
+vendors:
+- name: ec2
+  faiClasses: [SYSTEM_BOOT, CLOUD, EC2, LINUX_VARIANT_CLOUD, TIME_SYSTEMD, IPV6_DHCP]
+  size: 50
+  matches:
+  - matchArches: [amd64, arm64]
+- name: generic
+  faiClasses: [SYSTEM_BOOT, CLOUD, GENERIC, LINUX_VARIANT_BASE, TIME_SYSTEMD]
+  size: 50
+- name: genericcloud
+  faiClasses: [SYSTEM_BOOT, CLOUD, GENERIC, LINUX_VARIANT_CLOUD, TIME_SYSTEMD]
+  size: 50
+
+types:
+- name: official
+  outputName: 'debian-{release}-{vendor}-{arch}-{build_type}-{version}'
+  outputVersion: '{date}-{version}'
+  outputVersionAzure: '0.{date!s}.{version!s}'
+
+publicTypes:
+- name: release
+  matches:
+  - matchVendors: [ec2]
+    op: EnableUpload
+  - matchVendors: [generic, genericcloud]

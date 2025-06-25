@@ -1,0 +1,70 @@
+#!/bin/sh
+set -eu
+touch $LOGDIR/skip.partition
+
+set -- $disklist
+device=/dev/$1
+device_root="${device}p16"
+device_efi="${device}p15"
+# Add device variables for custom partitions
+device_swap="${device}p17"
+device_home="${device}p18"
+device_variable="${device}p19"
+device_temp="${device}p20"
+
+wait_for_device() {
+  for s in $(seq 10); do
+    if [ -e "$1" ]; then
+      break
+    fi
+    sleep 1
+  done
+}
+
+#sector size is 512
+# for 1 GB size the formula is 1024*1024*1024/512 = 2097152
+
+sfdisk "$device" << EOF
+label: gpt
+unit: sectors
+
+# BIOS boot
+p14 : start=2048, size=6144, type="BIOS boot"
+# EFI system
+p15 : start=8192, size=253952, type="EFI System", uuid=${PARTUUID_ESP}
+# Linux
+p16 : start=262144, size=6291456, type="Linux filesystem", uuid=${PARTUUID_ROOT}
+# Swap partition
+p17 : start=6553600, size=8388608, type="Linux swap", uuid=${PARTUUID_SWAP}
+# Home partition
+p18 : start=14942208, size=41943040, type="Linux filesystem", uuid=${PARTUUID_HOME}
+# Variable partition
+p19 : start=56885248, size=20971520, type="Linux filesystem", uuid=${PARTUUID_VARIABLE}
+# Temp partition
+p20 : start=77856768, size=10485760, type="Linux filesystem", uuid=${PARTUUID_TEMP}
+EOF
+
+partprobe "$device"
+
+wait_for_device "$device_root"
+mkfs.ext4 -U "$FSUUID_ROOT" "$device_root"
+tune2fs -c 0 -i 0 "$device_root"
+
+wait_for_device "$device_efi"
+mkfs.vfat "$device_efi"
+
+# Add filesystem creation for custom partitions
+wait_for_device "$device_swap"
+mkswap -U "$FSUUID_SWAP" "$device_swap"
+
+wait_for_device "$device_home"
+mkfs.ext4 -U "$FSUUID_HOME" "$device_home"
+tune2fs -c 0 -i 0 "$device_home"
+
+wait_for_device "$device_variable"
+mkfs.ext4 -U "$FSUUID_VARIABLE" "$device_variable"
+tune2fs -c 0 -i 0 "$device_variable"
+
+wait_for_device "$device_temp"
+mkfs.ext4 -U "$FSUUID_TEMP" "$device_temp"
+tune2fs -c 0 -i 0 "$device_temp"

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -euE
+export PYTHONPATH=$(realpath $(dirname $0)/../src)
+exec python3 -m debian_cloud_images.cli "$@"
+# exec python3 -m debian_cloud_images.cli.generate_ci .gitlab/ci/generated.yml --public-type release

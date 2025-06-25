@@ -1,0 +1,15 @@
+PARTUUID_ROOT=$(python3 -c 'import uuid; print(uuid.uuid4())')
+PARTUUID_ESP=$(python3 -c 'import uuid; print(uuid.uuid4())')
+FSUUID_ROOT=$(python3 -c 'import uuid; print(uuid.uuid4())')
+
+# Custom partition UUIDs
+PARTUUID_SWAP=$(python3 -c 'import uuid; print(uuid.uuid4())')
+PARTUUID_HOME=$(python3 -c 'import uuid; print(uuid.uuid4())')
+PARTUUID_VARIABLE=$(python3 -c 'import uuid; print(uuid.uuid4())')
+PARTUUID_TEMP=$(python3 -c 'import uuid; print(uuid.uuid4())')
+
+# Custom filesystem UUIDs
+FSUUID_SWAP=$(python3 -c 'import uuid; print(uuid.uuid4())')
+FSUUID_HOME=$(python3 -c 'import uuid; print(uuid.uuid4())')
+FSUUID_VARIABLE=$(python3 -c 'import uuid; print(uuid.uuid4())')
+FSUUID_TEMP=$(python3 -c 'import uuid; print(uuid.uuid4())')
